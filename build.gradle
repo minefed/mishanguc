@@ -141,7 +141,6 @@ println content
 
 tasks.register('curseforge', TaskPublishCurseForge) {
     def getenv = System.getenv("CURSEFORGE_TOKEN")
-    println("CurseForge 令牌: $getenv")
     if (getenv) apiToken = getenv
 
     def mainFile = upload('583071', remapJar)
@@ -158,8 +157,6 @@ tasks.register('curseforge', TaskPublishCurseForge) {
 }
 
 modrinth {
-    println "Modrinth 令牌：${token.get()}"
-
     projectId = "rItLmRo4" // 迷上城建模组的 Modrinth ID
     versionNumber = project.mod_version + '-' + project.minecraft_version
     versionType = project.mod_version.contains('-') ? 'beta' : 'release'  // until release of MC
@@ -177,7 +174,6 @@ modrinth {
 
 githubRelease {
     def getenv = System.getenv("GITHUB_TOKEN")
-    println "GitHub 令牌: $getenv"
     if (getenv) token = getenv
     owner = "SolidBlock-cn"
     repo = "mishanguc"
