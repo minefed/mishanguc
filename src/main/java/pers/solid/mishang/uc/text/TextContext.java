@@ -27,7 +27,6 @@ import pers.solid.mishang.uc.util.HorizontalAlign;
 import pers.solid.mishang.uc.util.TextBridge;
 import pers.solid.mishang.uc.util.VerticalAlign;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -293,7 +292,7 @@ public class TextContext implements Cloneable {
     if (text == null && extra == null) {
       return;
     }
-    if (!Arrays.equals(cachedStyles, new boolean[]{bold, italic, underline, strikethrough, obfuscated}) || text != cachedText) {
+    if (stylesChanged() || text != cachedText) {
       reformatText();
     }
     final OrderedText orderedText = formattedText == null ? null : formattedText.asOrderedText();
@@ -369,6 +368,19 @@ public class TextContext implements Cloneable {
       formattedText.formatted(Formatting.OBFUSCATED);
     }
     cachedStyles = new boolean[]{bold, italic, underline, strikethrough, obfuscated};
+  }
+
+  /**
+   * 检查 {@link #bold}、{@link #italic}、{@link #underline}、{@link #strikethrough}、{@link #obfuscated} 是否与 {@link #cachedStyles} 不同。结果与将这些字段组成新数组后用 {@code Arrays.equals} 比较相同，但不会每帧分配数组。
+   */
+  private boolean stylesChanged() {
+    final boolean[] cachedStyles = this.cachedStyles;
+    return cachedStyles == null
+        || cachedStyles[0] != bold
+        || cachedStyles[1] != italic
+        || cachedStyles[2] != underline
+        || cachedStyles[3] != strikethrough
+        || cachedStyles[4] != obfuscated;
   }
 
   /**
