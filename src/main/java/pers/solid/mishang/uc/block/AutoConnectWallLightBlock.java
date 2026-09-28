@@ -32,6 +32,7 @@ import pers.solid.mishang.uc.MishangUtils;
 import pers.solid.mishang.uc.Mishanguc;
 import pers.solid.mishang.uc.data.MishangucModels;
 import pers.solid.mishang.uc.data.MishangucTextureKeys;
+import pers.solid.mishang.uc.util.StateShapeCache;
 
 import java.util.*;
 
@@ -82,6 +83,7 @@ public class AutoConnectWallLightBlock extends WallLightBlock implements LightCo
   private final boolean largeShape;
   final Map<Direction, VoxelShape> LARGE_SHAPE_PER_DIRECTION =
       MishangUtils.createDirectionToShape(0, 0, 0, 16, 1, 16);
+  private final StateShapeCache outlineShapes = new StateShapeCache(this::createOutlineShape);
 
   public AutoConnectWallLightBlock(String lightColor, String shape, Settings settings, boolean largeShape) {
     super(lightColor, settings, false);
@@ -163,6 +165,10 @@ public class AutoConnectWallLightBlock extends WallLightBlock implements LightCo
   @Override
   public VoxelShape getOutlineShape(
       BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    return outlineShapes.get(state);
+  }
+
+  private VoxelShape createOutlineShape(BlockState state) {
     final Direction facing = state.get(FACING);
     if (largeShape) {
       return LARGE_SHAPE_PER_DIRECTION.get(facing);

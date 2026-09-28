@@ -52,6 +52,7 @@ import pers.solid.mishang.uc.data.ModelHelper;
 import pers.solid.mishang.uc.mixin.ItemUsageContextInvoker;
 import pers.solid.mishang.uc.render.HungSignBlockEntityRenderer;
 import pers.solid.mishang.uc.text.TextContext;
+import pers.solid.mishang.uc.util.StateShapeCache;
 import pers.solid.mishang.uc.util.TextBridge;
 
 import java.util.HashSet;
@@ -91,6 +92,7 @@ public class HungSignBlock extends Block implements Waterloggable, BlockEntityPr
       MishangUtils.createHorizontalDirectionToShape(7.5, 13, 13, 8.5, 16, 14);
   private static final VoxelShape SHAPE_WIDENED_X = createCuboidShape(6.5, 5, 0, 9.5, 16, 16);
   private static final VoxelShape SHAPE_WIDENED_Z = createCuboidShape(0, 5, 6.5, 16, 16, 9.5);
+  private static final StateShapeCache COLLISION_SHAPES = new StateShapeCache(HungSignBlock::createCollisionShape);
   protected static final RecordCodecBuilder<HungSignBlock, Block> BASE_BLOCK_CODEC = Registries.BLOCK.getCodec().fieldOf("base_block").forGetter(b -> b.baseBlock);
 
   public static final MapCodec<HungSignBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(baseBlockCodec(), createSettingsCodec()).apply(instance, HungSignBlock::new));
@@ -180,6 +182,10 @@ public class HungSignBlock extends Block implements Waterloggable, BlockEntityPr
   @SuppressWarnings("deprecation")
   @Override
   public VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    return COLLISION_SHAPES.get(state);
+  }
+
+  private static VoxelShape createCollisionShape(BlockState state) {
     final Direction.Axis axis = state.get(AXIS);
     final boolean left = state.get(LEFT);
     final boolean right = state.get(RIGHT);

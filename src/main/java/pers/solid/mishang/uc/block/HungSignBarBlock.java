@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import pers.solid.mishang.uc.MishangUtils;
 import pers.solid.mishang.uc.data.MishangucModels;
 import pers.solid.mishang.uc.data.ModelHelper;
+import pers.solid.mishang.uc.util.StateShapeCache;
 import pers.solid.mishang.uc.util.TextBridge;
 
 import java.util.Map;
@@ -68,6 +69,8 @@ public class HungSignBarBlock extends Block implements Waterloggable, MishangucB
   private static final VoxelShape BAR_SHAPE_CENTRAL = createCuboidShape(7.5, 0, 7.5, 8.5, 16, 8.5);
 
   private static final VoxelShape BAR_SHAPE_CENTRAL_WIDE = createCuboidShape(6.5, 0, 6.5, 9.5, 16, 9.5);
+  private static final StateShapeCache OUTLINE_SHAPES = new StateShapeCache(HungSignBarBlock::createOutlineShape);
+  private static final StateShapeCache COLLISION_SHAPES = new StateShapeCache(HungSignBarBlock::createCollisionShape);
   public final @Nullable Block baseBlock;
   /**
    * 告示牌杆的纹理。若为 {@code null}，则根据其 {@link #baseBlock} 的 id 来推断。
@@ -129,6 +132,10 @@ public class HungSignBarBlock extends Block implements Waterloggable, MishangucB
   @Override
   public VoxelShape getOutlineShape(
       BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    return OUTLINE_SHAPES.get(state);
+  }
+
+  private static VoxelShape createOutlineShape(BlockState state) {
     final Direction.Axis axis = state.get(AXIS);
     final Boolean left = state.get(LEFT);
     final Boolean right = state.get(RIGHT);
@@ -171,6 +178,10 @@ public class HungSignBarBlock extends Block implements Waterloggable, MishangucB
   @SuppressWarnings("deprecation")
   @Override
   public VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    return COLLISION_SHAPES.get(state);
+  }
+
+  private static VoxelShape createCollisionShape(BlockState state) {
     final Direction.Axis axis = state.get(AXIS);
     final Boolean left = state.get(LEFT);
     final Boolean right = state.get(RIGHT);

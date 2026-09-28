@@ -54,6 +54,7 @@ import pers.solid.mishang.uc.data.MishangucModels;
 import pers.solid.mishang.uc.data.MishangucTextureKeys;
 import pers.solid.mishang.uc.data.ModelHelper;
 import pers.solid.mishang.uc.mixin.ItemUsageContextInvoker;
+import pers.solid.mishang.uc.util.StateShapeCache;
 import pers.solid.mishang.uc.util.TextBridge;
 
 import java.util.List;
@@ -82,6 +83,7 @@ public class StandingSignBlock extends Block implements BlockEntityProvider, Wat
   protected static final VoxelShape SHAPE_CENTER = createCuboidShape(2.5, 8, 2.5, 13.5, 16, 13.5);
   protected static final VoxelShape CULLING_SHAPE = createCuboidShape(7.5, 0, 7.5, 8.5, 8, 8.5);
   protected static final VoxelShape BAR_SHAPE = createCuboidShape(6.5, 0, 6.5, 9.5, 8, 9.5);
+  private static final StateShapeCache OUTLINE_SHAPES = new StateShapeCache(StandingSignBlock::createOutlineShape);
   protected static final RecordCodecBuilder<? extends StandingSignBlock, Block> BASE_BLOCK_CODEC = Registries.BLOCK.getCodec().fieldOf("base_block").forGetter(b -> b.baseBlock);
 
   @SuppressWarnings("unchecked")
@@ -291,6 +293,10 @@ public class StandingSignBlock extends Block implements BlockEntityProvider, Wat
   @SuppressWarnings("deprecation")
   @Override
   public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    return OUTLINE_SHAPES.get(state);
+  }
+
+  private static VoxelShape createOutlineShape(BlockState state) {
     final VoxelShape bodyShape = switch (state.get(ROTATION)) {
       case 0, 8 -> SHAPE_NS;
       case 1, 7, 9, 15 -> SHAPE_NS_WIDE;
