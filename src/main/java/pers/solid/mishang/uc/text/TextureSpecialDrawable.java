@@ -7,7 +7,6 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.texture.ResourceTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
@@ -26,16 +25,14 @@ public record TextureSpecialDrawable(@NotNull Identifier identifier, @NotNull Te
   @Override
   @Environment(EnvType.CLIENT)
   public void drawExtra(TextRenderer textRenderer, MatrixStack matrixStack, VertexConsumerProvider vertexConsumers, int light, float x, float y) {
-    try (final ResourceTexture resourceTexture = new ResourceTexture(identifier)) {
-      resourceTexture.bindTexture();
-      final VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getText(identifier));
-      final Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
+    // 纹理由 RenderLayer.getText(identifier) 在绘制时通过 TextureManager 绑定，此处无需自行创建和绑定纹理。
+    final VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getText(identifier));
+    final Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
 
-      vertexConsumer.vertex(matrix4f, 0, 8, -0).color(255, 255, 255, 255).texture(0.0f, 1.0f).light(light).next();
-      vertexConsumer.vertex(matrix4f, 8, 8, -0).color(255, 255, 255, 255).texture(1.0f, 1.0f).light(light).next();
-      vertexConsumer.vertex(matrix4f, 8, 0, -0).color(255, 255, 255, 255).texture(1.0f, 0.0f).light(light).next();
-      vertexConsumer.vertex(matrix4f, 0, 0, -0).color(255, 255, 255, 255).texture(0.0f, 0.0f).light(light).next();
-    }
+    vertexConsumer.vertex(matrix4f, 0, 8, -0).color(255, 255, 255, 255).texture(0.0f, 1.0f).light(light).next();
+    vertexConsumer.vertex(matrix4f, 8, 8, -0).color(255, 255, 255, 255).texture(1.0f, 1.0f).light(light).next();
+    vertexConsumer.vertex(matrix4f, 8, 0, -0).color(255, 255, 255, 255).texture(1.0f, 0.0f).light(light).next();
+    vertexConsumer.vertex(matrix4f, 0, 0, -0).color(255, 255, 255, 255).texture(0.0f, 0.0f).light(light).next();
   }
 
   @Override
