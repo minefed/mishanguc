@@ -10,6 +10,10 @@ import pers.solid.mishang.uc.MishangUtils;
  */
 public class ColoredHungSignBlockEntity extends HungSignBlockEntity implements ColoredBlockEntity {
   public int color = 0;
+  /**
+   * 客户端是否已经在读取颜色后通知过重新渲染区块。
+   */
+  private transient boolean colorRenderNotified = false;
 
   public ColoredHungSignBlockEntity(BlockPos pos, BlockState state) {
     super(MishangucBlockEntities.COLORED_HUNG_SIGN_BLOCK_ENTITY, pos, state);
@@ -18,8 +22,11 @@ public class ColoredHungSignBlockEntity extends HungSignBlockEntity implements C
   @Override
   public void readNbt(NbtCompound nbt) {
     super.readNbt(nbt);
+    final int oldColor = color;
     color = MishangUtils.readColorFromNbtElement(nbt.get("color"));
-    if (world != null && world.isClient) {
+    // 颜色只影响方块的着色（区块网格），因此只在首次读取以及颜色改变时才通知重新渲染区块。
+    if (world != null && world.isClient && (!colorRenderNotified || color != oldColor)) {
+      colorRenderNotified = true;
       world.updateListeners(pos, this.getCachedState(), this.getCachedState(), 3);
     }
   }
