@@ -16,6 +16,7 @@ import net.minecraft.nbt.NbtString;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.PlainTextContent;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
@@ -23,6 +24,7 @@ import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.*;
 import org.joml.Quaternionf;
 import pers.solid.mishang.uc.MishangUtils;
+import pers.solid.mishang.uc.mixin.TextRendererAccessor;
 import pers.solid.mishang.uc.util.HorizontalAlign;
 import pers.solid.mishang.uc.util.TextBridge;
 import pers.solid.mishang.uc.util.VerticalAlign;
@@ -178,6 +180,18 @@ public class TextContext implements Cloneable {
    */
   @ApiStatus.AvailableSince("0.2.1")
   private transient MutableText formattedText = null;
+  /**
+   * 渲染时最近一次观察到的默认字体的字体存储对象（{@code FontStorage}），以及它被替换的次数。重新加载资源或者切换“强制使用 Unicode 字体”时，默认字体的字体存储对象会被替换，此时所有文本宽度缓存都会失效。仅在渲染线程中使用。
+   */
+  private static @Nullable Object observedDefaultFontStorage = null;
+  private static int fontGeneration = 0;
+  /**
+   * 缓存 {@link TextRenderer#getWidth(OrderedText)} 的结果。仅当文本对象（由 {@link #formattedText} 产生）、文本渲染器或者字体发生改变时，才重新计算宽度。
+   */
+  private transient @Nullable OrderedText widthCacheText = null;
+  private transient @Nullable Object widthCacheTextRenderer = null;
+  private transient int widthCacheFontGeneration = 0;
+  private transient int widthCacheValue = 0;
 
   /**
    * 从一个 NBT 元素创建一个新的 TextContext 对象，并使用默认值。
@@ -387,8 +401,27 @@ public class TextContext implements Cloneable {
    * 获取文本宽度，如果存在 extra 字段，则还需要考虑该对象的宽度。
    */
   private float getWidth(TextRenderer textRenderer, @Nullable OrderedText text) {
-    final float width = text == null ? 0 : textRenderer.getWidth(text) * size / 8 * scaleX;
+    final float width = text == null ? 0 : getTextWidth(textRenderer, text) * size / 8 * scaleX;
     return extra != null ? Math.max(width, extra.width() * size * scaleX) : width;
+  }
+
+  /**
+   * 返回 {@code textRenderer.getWidth(text)}。文本对象、文本渲染器和字体都没有改变时，直接返回上次计算的结果。
+   */
+  @Environment(EnvType.CLIENT)
+  private int getTextWidth(TextRenderer textRenderer, OrderedText text) {
+    final Object defaultFontStorage = ((TextRendererAccessor) textRenderer).invokeGetFontStorage(Style.DEFAULT_FONT_ID);
+    if (defaultFontStorage != observedDefaultFontStorage) {
+      observedDefaultFontStorage = defaultFontStorage;
+      fontGeneration++;
+    }
+    if (text != widthCacheText || textRenderer != widthCacheTextRenderer || fontGeneration != widthCacheFontGeneration) {
+      widthCacheValue = textRenderer.getWidth(text);
+      widthCacheText = text;
+      widthCacheTextRenderer = textRenderer;
+      widthCacheFontGeneration = fontGeneration;
+    }
+    return widthCacheValue;
   }
 
   public float getHeight() {
